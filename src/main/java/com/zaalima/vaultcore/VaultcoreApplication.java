@@ -3,11 +3,14 @@ package com.zaalima.vaultcore;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
-@SpringBootApplication
+@SpringBootApplication(scanBasePackages = "com.zaalima.vaultcore")
 public class VaultcoreApplication {
 
-	public static void main(String[] args) {
-		SpringApplication.run(VaultcoreApplication.class, args);
-	}
+    static {
+        System.out.println(">>> VAULTCORE APPLICATION STARTED <<<");
+    }
 
+    public static void main(String[] args) {
+        SpringApplication.run(VaultcoreApplication.class, args);
+    }
 }
