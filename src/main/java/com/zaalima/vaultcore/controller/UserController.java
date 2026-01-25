@@ -4,6 +4,8 @@ import com.zaalima.vaultcore.dto.UserRegistrationRequest;
 import com.zaalima.vaultcore.entity.User;
 import com.zaalima.vaultcore.service.UserService;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -28,5 +30,15 @@ public class UserController {
         userService.registerUser(user);
 
         return ResponseEntity.ok("User registered successfully");
+    }
+
+    // ✅ NEW ENDPOINT
+    @GetMapping("/me")
+    public ResponseEntity<?> getCurrentUser() {
+
+        Authentication authentication =
+                SecurityContextHolder.getContext().getAuthentication();
+
+        return ResponseEntity.ok(authentication.getName());
     }
 }
