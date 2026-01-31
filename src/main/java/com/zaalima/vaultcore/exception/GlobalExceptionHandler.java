@@ -1,78 +1,55 @@
 package com.zaalima.vaultcore.exception;
 
-import com.zaalima.vaultcore.dto.ErrorResponse;
-import jakarta.servlet.http.HttpServletRequest;
-import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.http.*;
-import org.springframework.security.access.AccessDeniedException;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
-@RestControllerAdvice
+@ControllerAdvice
 public class GlobalExceptionHandler {
 
+    // 🔴 Business rule violations
     @ExceptionHandler(IllegalStateException.class)
-    public ResponseEntity<ErrorResponse> handleIllegalState(
-            IllegalStateException ex,
-            HttpServletRequest request) {
+    public ResponseEntity<Object> handleIllegalState(
+            IllegalStateException ex) {
 
-        return buildResponse(
-                HttpStatus.BAD_REQUEST,
-                ex.getMessage(),
-                request.getRequestURI()
-        );
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("timestamp", LocalDateTime.now());
+        body.put("status", HttpStatus.BAD_REQUEST.value());
+        body.put("error", "Bad Request");
+        body.put("message", ex.getMessage());
+
+        return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
     }
 
-    @ExceptionHandler(DataIntegrityViolationException.class)
-    public ResponseEntity<ErrorResponse> handleDataIntegrity(
-            DataIntegrityViolationException ex,
-            HttpServletRequest request) {
+    // 🔴 Authentication issues
+    @ExceptionHandler(RuntimeException.class)
+    public ResponseEntity<Object> handleRuntime(
+            RuntimeException ex) {
 
-        return buildResponse(
-                HttpStatus.CONFLICT,
-                "Database constraint violation",
-                request.getRequestURI()
-        );
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("timestamp", LocalDateTime.now());
+        body.put("status", HttpStatus.UNAUTHORIZED.value());
+        body.put("error", "Unauthorized");
+        body.put("message", ex.getMessage());
+
+        return new ResponseEntity<>(body, HttpStatus.UNAUTHORIZED);
     }
 
-    @ExceptionHandler(AccessDeniedException.class)
-    public ResponseEntity<ErrorResponse> handleAccessDenied(
-            AccessDeniedException ex,
-            HttpServletRequest request) {
-
-        return buildResponse(
-                HttpStatus.FORBIDDEN,
-                "Access denied",
-                request.getRequestURI()
-        );
-    }
-
+    // 🔴 Fallback (unexpected errors)
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<ErrorResponse> handleGeneric(
-            Exception ex,
-            HttpServletRequest request) {
+    public ResponseEntity<Object> handleGeneral(
+            Exception ex) {
 
-        return buildResponse(
-                HttpStatus.INTERNAL_SERVER_ERROR,
-                "Unexpected server error",
-                request.getRequestURI()
-        );
-    }
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("timestamp", LocalDateTime.now());
+        body.put("status", HttpStatus.INTERNAL_SERVER_ERROR.value());
+        body.put("error", "Internal Server Error");
+        body.put("message", "Unexpected server error");
 
-    private ResponseEntity<ErrorResponse> buildResponse(
-            HttpStatus status,
-            String message,
-            String path) {
-
-        return ResponseEntity.status(status).body(
-                new ErrorResponse(
-                        LocalDateTime.now(),
-                        status.value(),
-                        status.getReasonPhrase(),
-                        message,
-                        path
-                )
-        );
+        return new ResponseEntity<>(body, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 }

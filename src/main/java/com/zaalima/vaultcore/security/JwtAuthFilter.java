@@ -33,11 +33,15 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         System.out.println("🔥 JwtAuthFilter CONSTRUCTOR CALLED");
     }
 
-    // 🚨 FORCE filter to apply to protected endpoints
+    /**
+     * ❗ VERY IMPORTANT
+     * Only skip JWT filter for login/register endpoints
+     */
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
         String path = request.getRequestURI();
-        return path.startsWith("/api/auth"); // only skip auth endpoints
+        System.out.println("🔍 shouldNotFilter check for: " + path);
+        return path.startsWith("/api/auth");
     }
 
     @Override
@@ -47,18 +51,29 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             FilterChain filterChain
     ) throws ServletException, IOException {
 
+        System.out.println("🚨 FILTER EXECUTED: " + request.getMethod() + " " + request.getRequestURI());
+        // 🔥 HARD DEBUG — YOU MUST SEE THIS
         System.out.println("🔥 JWT FILTER HIT FOR: " + request.getRequestURI());
         log.info("JWT FILTER HIT FOR: {}", request.getRequestURI());
 
         String authHeader = request.getHeader("Authorization");
 
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            log.warn("❌ No Authorization header or invalid format");
             filterChain.doFilter(request, response);
             return;
         }
 
         String token = authHeader.substring(7);
-        String username = jwtUtil.extractUsername(token);
+        String username;
+
+        try {
+            username = jwtUtil.extractUsername(token);
+        } catch (Exception e) {
+            log.error("❌ JWT parsing failed", e);
+            filterChain.doFilter(request, response);
+            return;
+        }
 
         if (username != null &&
                 SecurityContextHolder.getContext().getAuthentication() == null) {
@@ -83,8 +98,10 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                 SecurityContextHolder.getContext()
                         .setAuthentication(authentication);
 
-                log.info("Authenticated user: {} with roles {}",
+                log.info("✅ Authenticated user: {} | roles: {}",
                         username, userDetails.getAuthorities());
+            } else {
+                log.warn("❌ Invalid JWT token");
             }
         }
 
