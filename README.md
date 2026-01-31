@@ -41,4 +41,9 @@ VaultCore is a secure backend system for a digital banking platform built using 
 - `GET /api/transactions/me`
 
 ## 📖 API Docs
-Swagger UI:
+Swagger UI:http://localhost:8080/swagger-ui.html
+
+## ▶️ Run Project
+```bash
+mvn spring-boot:run
+
