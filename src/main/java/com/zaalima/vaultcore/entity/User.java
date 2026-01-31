@@ -1,5 +1,6 @@
 package com.zaalima.vaultcore.entity;
 
+import java.util.List;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -23,4 +24,8 @@ public class User {
 
     @Column(nullable = false)
     private String role;
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+private List<Account> accounts;
+
 }

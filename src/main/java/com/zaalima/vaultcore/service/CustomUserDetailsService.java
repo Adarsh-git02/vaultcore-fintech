@@ -1,11 +1,9 @@
-package com.zaalima.vaultcore.security;
+package com.zaalima.vaultcore.service;
 
 import com.zaalima.vaultcore.entity.User;
 import com.zaalima.vaultcore.repository.UserRepository;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.core.userdetails.*;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -25,13 +23,18 @@ public class CustomUserDetailsService implements UserDetailsService {
 
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() ->
-                        new UsernameNotFoundException("User not found: " + username)
-                );
+                        new UsernameNotFoundException("User not found"));
+
+        // ✅ SAFE ROLE HANDLING (NO DOUBLE ROLE_)
+        String role = user.getRole();
+        if (!role.startsWith("ROLE_")) {
+            role = "ROLE_" + role;
+        }
 
         return new org.springframework.security.core.userdetails.User(
                 user.getUsername(),
                 user.getPassword(),
-                List.of(new SimpleGrantedAuthority("ROLE_" + user.getRole()))
+                List.of(new SimpleGrantedAuthority(role))
         );
     }
 }

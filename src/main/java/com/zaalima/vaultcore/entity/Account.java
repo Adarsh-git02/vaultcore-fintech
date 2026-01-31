@@ -2,13 +2,12 @@ package com.zaalima.vaultcore.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
-
 import java.math.BigDecimal;
 
 @Entity
-@Table(name = "accounts")
 @Getter
 @Setter
+@Table(name = "accounts")
 @NoArgsConstructor
 @AllArgsConstructor
 public class Account {
@@ -17,10 +16,13 @@ public class Account {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @OneToOne
-    @JoinColumn(name = "user_id", nullable = false)
-    private User user;
+    @Column(nullable = false, unique = true)
+    private String accountNumber;
 
     @Column(nullable = false)
     private BigDecimal balance;
+
+    @ManyToOne
+    @JoinColumn(name = "user_id", nullable = false, unique = true)
+    private User user;
 }

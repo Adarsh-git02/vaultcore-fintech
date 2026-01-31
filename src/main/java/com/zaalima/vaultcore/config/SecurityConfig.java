@@ -1,7 +1,10 @@
 package com.zaalima.vaultcore.config;
 
+import com.zaalima.vaultcore.security.JwtAuthFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -10,33 +13,38 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
-import com.zaalima.vaultcore.security.JwtAuthFilter;
-
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
-
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
+
     private final JwtAuthFilter jwtAuthFilter;
 
     public SecurityConfig(JwtAuthFilter jwtAuthFilter) {
         this.jwtAuthFilter = jwtAuthFilter;
+        System.out.println("✅ JwtAuthFilter injected into SecurityConfig");
     }
-@Bean
+
+    @Bean
 public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+
     http
         .csrf(csrf -> csrf.disable())
-        .authorizeHttpRequests(auth -> auth
-            .requestMatchers("/api/auth/**").permitAll()
-            .requestMatchers("/api/users/register").permitAll()
-            .anyRequest().authenticated()
-        )
         .sessionManagement(session ->
             session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-        );
+        )
+        .authorizeHttpRequests(auth -> auth
+    .requestMatchers("/api/auth/**").permitAll()
+    .requestMatchers("/api/users/register").permitAll()
 
-    http.addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+    // 🔐 ACCOUNT APIs
+    .requestMatchers("/api/accounts/**").authenticated()
+
+    // 🔐 TRANSACTION APIs (ADD THIS)
+    .requestMatchers("/api/transactions/**").authenticated()
+
+    .anyRequest().denyAll()
+)
+        .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
     return http.build();
 }
@@ -45,10 +53,10 @@ public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Excepti
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
-    @Bean
-public AuthenticationManager authenticationManager(
-        AuthenticationConfiguration configuration) throws Exception {
-    return configuration.getAuthenticationManager();
-}
 
+    @Bean
+    public AuthenticationManager authenticationManager(
+            AuthenticationConfiguration configuration) throws Exception {
+        return configuration.getAuthenticationManager();
+    }
 }
