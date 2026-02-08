@@ -25,16 +25,12 @@ public class CustomUserDetailsService implements UserDetailsService {
                 .orElseThrow(() ->
                         new UsernameNotFoundException("User not found"));
 
-        // ✅ SAFE ROLE HANDLING (NO DOUBLE ROLE_)
-        String role = user.getRole();
-        if (!role.startsWith("ROLE_")) {
-            role = "ROLE_" + role;
-        }
-
         return new org.springframework.security.core.userdetails.User(
                 user.getUsername(),
                 user.getPassword(),
-                List.of(new SimpleGrantedAuthority(role))
+                List.of(
+                    new SimpleGrantedAuthority("ROLE_" + user.getRole())
+                )
         );
     }
 }

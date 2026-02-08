@@ -9,6 +9,7 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "ledger_entries")
 @Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 public class LedgerEntry {
@@ -17,16 +18,18 @@ public class LedgerEntry {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
-    @JoinColumn(name = "account_id", nullable = false)
+    @ManyToOne(optional = false)
     private Account account;
 
     @Column(nullable = false)
     private BigDecimal amount;
 
     @Column(nullable = false)
-    private String entryType; // DEBIT or CREDIT
+    private String entryType; // CREDIT / DEBIT
 
     @Column(nullable = false)
-    private LocalDateTime createdAt;
+    private String reference;
+
+    @Column(nullable = false)
+    private LocalDateTime timestamp;
 }
